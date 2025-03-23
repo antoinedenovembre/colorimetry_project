@@ -2,3 +2,6 @@ numpy
 matplotlib
 colorspacious
 plotly
+pandas
+openpyxl
+nbformat
