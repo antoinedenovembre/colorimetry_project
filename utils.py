@@ -41,10 +41,13 @@ def get_color_from_df(df, idx):
 def create_binarized_art_image(image_path, bg_rgb, fg_rgb, width=582, height=827):
     """
     Loads an image from 'image_path', converts it to grayscale,
-    binarizes it with a threshold, then displays it on an A5 canvas (582x827 pixels).
+    binarizes it with a threshold, then renders it on an A5 canvas (582x827 pixels).
     
-    The binarized pixels (foreground) will be colored with fg_rgb and
-    the background will take the color bg_rgb.
+    The binarized pixels (foreground) are colored with fg_rgb, and
+    the background takes the color bg_rgb.
+
+    Returns:
+        canvas (np.ndarray): RGB image as a numpy array (height, width, 3)
     """
     # Load the image
     img = plt.imread(image_path)
@@ -65,7 +68,7 @@ def create_binarized_art_image(image_path, bg_rgb, fg_rgb, width=582, height=827
     threshold = 0.5
     img_bin = (img_gray > threshold).astype(np.float32)
     
-    # Resize the image to fit the A5 canvas
+    # Resize
     img_h, img_w = img_bin.shape
     scale_factor = min(width / img_w, height / img_h) * 0.95
     new_w = int(img_w * scale_factor)
@@ -75,20 +78,16 @@ def create_binarized_art_image(image_path, bg_rgb, fg_rgb, width=582, height=827
     img_resized = img_pil.resize((new_w, new_h), Image.NEAREST)
     img_resized = np.array(img_resized) / 255.
     
-    # Create the A5 canvas with the background color
+    # Create canvas with background color
     canvas = np.ones((height, width, 3), dtype=float) * bg_rgb[0, 0, :]
-    
-    # Calculate the position to center the resized image
+
+    # Center the resized image
     start_y = (height - new_h) // 2
     start_x = (width - new_w) // 2
 
-    # Apply the fg_rgb color
+    # Apply foreground color where the mask is True
     canvas_region = canvas[start_y:start_y+new_h, start_x:start_x+new_w, :]
-    mask = img_resized > 0.5  # boolean mask for the foreground
+    mask = img_resized > 0.5
     canvas_region[mask] = fg_rgb[0, 0, :]
     
-    # Final display of the image
-    fig, ax = plt.subplots(figsize=(width/100, height/100), dpi=100)
-    ax.imshow(canvas)
-    ax.axis("off")
-    return fig
+    return canvas
