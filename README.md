@@ -20,5 +20,6 @@ pip install -r requirements.txt
 ## To-do list
 
 - [x] Compute the Lab values for each patch under each illuminant
-- [ ] Compute the Delta E 00 between each patch under each illuminant
-- [ ] Find the most optimized couple of patches (maximizing delta E 00 under one illuminant and minimizing under another)
+- [x] Compute the Delta E 00 between each patch under each illuminant
+- [x] Find the most optimized couple of patches (maximizing delta E 00 under one illuminant and minimizing under another)
+- [ ] Reinterpret the results with the printer's RGB curves to get the right colors to print for the patches
