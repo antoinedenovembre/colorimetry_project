@@ -1,4 +1,7 @@
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from PIL import Image
 
 def excel_to_dataframe(file_path, sheet_name=0, **kwargs):
     """
