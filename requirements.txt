@@ -6,3 +6,4 @@ pandas
 openpyxl
 nbformat
 scikit-image
+opencv-python

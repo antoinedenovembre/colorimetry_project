@@ -28,15 +28,47 @@ def excel_to_dataframe(file_path, sheet_name=0, **kwargs):
         print(f"Error reading Excel file: {e}")
         return None
 
-def get_color_from_df(df, idx):
+def lab_to_xyz(lab):
     """
-    Extracts the color at the given index from the DataFrame.
-    We assume that the DataFrame contains columns 'R', 'G', and 'B'
-    with values already normalized (between 0 and 1).
+    Convert Lab to XYZ color space.
     """
-    row = df.iloc[idx]
-    r, g, b = row['R'], row['G'], row['B']
-    return np.array([[[r, g, b]]], dtype=float)
+    Xn, Yn, Zn = 0.95047, 1.00000, 1.08883
+    
+    L, a, b = lab
+    fy = (L + 16) / 116
+    fx = a / 500 + fy
+    fz = fy - b / 200
+    
+    def f_inv(t):
+        delta = 6/29
+        return t**3 if t > delta else 3 * (delta**2) * (t - 4/29)
+    
+    X = Xn * f_inv(fx)
+    Y = Yn * f_inv(fy)
+    Z = Zn * f_inv(fz)
+    
+    return np.array([X, Y, Z])
+
+def xyz_to_rgb(xyz):
+    """
+    Convert XYZ to RGB using the sRGB space matrix.
+    """
+    M = np.array([[ 3.2406, -1.5372, -0.4986],
+              [-0.9689,  1.8758,  0.0415],
+              [ 0.0557, -0.2040,  1.0570]])
+    
+    rgb = np.dot(M, xyz)
+    
+    rgb = np.clip(rgb, 0, 1) 
+    return rgb
+
+def lab_to_rgb(lab):
+    """
+    Convert Lab to RGB color space.
+    """
+    xyz = lab_to_xyz(lab)
+    rgb = xyz_to_rgb(xyz)
+    return rgb
 
 def create_binarized_art_image(image_path, bg_rgb, fg_rgb, width=582, height=827):
     """
@@ -79,7 +111,7 @@ def create_binarized_art_image(image_path, bg_rgb, fg_rgb, width=582, height=827
     img_resized = np.array(img_resized) / 255.
     
     # Create canvas with background color
-    canvas = np.ones((height, width, 3), dtype=float) * bg_rgb[0, 0, :]
+    canvas = np.ones((height, width, 3), dtype=float) * bg_rgb
 
     # Center the resized image
     start_y = (height - new_h) // 2
@@ -88,6 +120,6 @@ def create_binarized_art_image(image_path, bg_rgb, fg_rgb, width=582, height=827
     # Apply foreground color where the mask is True
     canvas_region = canvas[start_y:start_y+new_h, start_x:start_x+new_w, :]
     mask = img_resized > 0.5
-    canvas_region[mask] = fg_rgb[0, 0, :]
+    canvas_region[mask] = fg_rgb
     
     return canvas
